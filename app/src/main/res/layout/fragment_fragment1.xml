@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,5 +10,30 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <TextView
+            android:id="@+id/fragment1text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="TÄMÄ ON FRAGMNENT1"
+            app:layout_constraintTop_toBottomOf="@+id/frag13"
+            tools:layout_editor_absoluteX="127dp" />
+
+        <Button
+            android:id="@+id/frag12"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Frag12"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/frag13"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Frag13"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/frag12" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>
