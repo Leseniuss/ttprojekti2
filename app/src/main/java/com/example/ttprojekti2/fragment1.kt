@@ -28,6 +28,12 @@ class fragment1 : Fragment() {
             Navigation.findNavController(view).navigate(R.id.action_fragment1_to_fragment3)
         }
 
+        val button3=view.findViewById<Button>(R.id.camera)
+        button3.setOnClickListener {
+            Navigation.findNavController(view).navigate(R.id.action_fragment1_to_cameraXFragment)
+        }
+
+
 
         return view
     }

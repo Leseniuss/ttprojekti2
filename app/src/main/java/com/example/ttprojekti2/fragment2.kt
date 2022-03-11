@@ -23,7 +23,6 @@ class fragment2 : Fragment() {
             Navigation.findNavController(view).navigate(R.id.action_fragment2_to_fragment1)
         }
 
-
         val button2=view.findViewById<Button>(R.id.frag23)
         button2.setOnClickListener {
             Navigation.findNavController(view).navigate(R.id.action_fragment2_to_fragment3)
