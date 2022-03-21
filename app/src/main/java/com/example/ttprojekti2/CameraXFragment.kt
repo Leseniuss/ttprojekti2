@@ -2,11 +2,13 @@ package com.example.ttprojekti2
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.drawable.GradientDrawable
-import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -17,18 +19,16 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-
 import kotlinx.android.synthetic.main.fragment_camera_x.*
 import org.opencv.android.OpenCVLoader
-import org.opencv.android.Utils
-import org.opencv.core.Mat
 import java.io.File
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import kotlin.math.abs
+
+// import android.content.ContentResolver
 
 typealias CornersListener = () -> Unit
 
@@ -102,7 +102,7 @@ class CameraXFragment : Fragment() {
 
             imageCapture = ImageCapture.Builder().build()
 
-            imageAnalyzer = ImageAnalysis.Builder().build().apply {
+          /*  imageAnalyzer = ImageAnalysis.Builder().build().apply {
                 setAnalyzer(Executors.newSingleThreadExecutor(), CornerAnalyzer {
                     val bitmap = viewFinder.bitmap
                     val img = Mat()
@@ -110,7 +110,7 @@ class CameraXFragment : Fragment() {
                     bitmap?.recycle()
                     // Do image analysis here if you need bitmap
                 })
-            }
+            } */
             // Select back camera
             val cameraSelector =
                 CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
@@ -123,7 +123,7 @@ class CameraXFragment : Fragment() {
                 camera = cameraProvider.bindToLifecycle(
                     this,
                     cameraSelector,
-                    imageAnalyzer,
+                   // imageAnalyzer,
                     preview,
                     imageCapture
                 )
@@ -138,7 +138,7 @@ class CameraXFragment : Fragment() {
     }
 
     private fun takePhoto() {
-        // Get a stable reference of the modifiable image capture use case
+      /*  // Get a stable reference of the modifiable image capture use case
         val imageCapture = imageCapture ?: return
 
         // Create timestamped output file to hold the image
@@ -166,7 +166,53 @@ class CameraXFragment : Fragment() {
                     Toast.makeText(safeContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
                 }
-            })
+            }) */
+
+        // Get a stable reference of the modifiable image capture use case
+        val contentResolver: ContentResolver = requireActivity().contentResolver
+
+
+        val imageCapture = imageCapture ?: return
+
+        // Create time stamped name and MediaStore entry.
+        val name = SimpleDateFormat(FILENAME_FORMAT, Locale.US)
+            .format(System.currentTimeMillis())
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            if(Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ttprojekti2-Image")
+            }
+        }
+
+        // Create output options object which contains file + metadata
+
+
+        val outputOptions = ImageCapture.OutputFileOptions
+            .Builder(contentResolver,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                contentValues)
+            .build()
+
+        // Set up image capture listener, which is triggered after photo has
+        // been taken
+        imageCapture.takePicture(
+            outputOptions,
+            ContextCompat.getMainExecutor(safeContext),
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onError(exc: ImageCaptureException) {
+                    Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
+                }
+
+                override fun
+                        onImageSaved(output: ImageCapture.OutputFileResults){
+                    val msg = "Photo capture succeeded: ${output.savedUri}"
+                    Toast.makeText(safeContext, msg, Toast.LENGTH_SHORT).show()
+                    Log.d(TAG, msg)
+                }
+            }
+        )
+
     }
 
     override fun onPause() {
@@ -203,7 +249,7 @@ class CameraXFragment : Fragment() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
-    fun getOutputDirectory(): File {
+    private fun getOutputDirectory(): File {
         val mediaDir = activity?.externalMediaDirs?.firstOrNull()?.let {
             File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
         }
