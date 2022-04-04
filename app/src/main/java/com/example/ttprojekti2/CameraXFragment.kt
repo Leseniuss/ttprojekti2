@@ -21,6 +21,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.fragment_camera_x.*
 import org.opencv.android.OpenCVLoader
+import org.opencv.android.Utils
+import org.opencv.core.Mat
 import java.io.File
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
@@ -73,10 +75,12 @@ class CameraXFragment : Fragment() {
         if (allPermissionsGranted()) {
             startCamera()
         } else {
+            startCamera()
             ActivityCompat.requestPermissions(
                 requireActivity(),
                 REQUIRED_PERMISSIONS,
                 REQUEST_CODE_PERMISSIONS
+
             )
         }
 
@@ -93,7 +97,7 @@ class CameraXFragment : Fragment() {
         OpenCVLoader.initDebug()
         val cameraProviderFuture = ProcessCameraProvider.getInstance(safeContext)
 
-        cameraProviderFuture.addListener(Runnable {
+        cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
@@ -102,7 +106,7 @@ class CameraXFragment : Fragment() {
 
             imageCapture = ImageCapture.Builder().build()
 
-          /*  imageAnalyzer = ImageAnalysis.Builder().build().apply {
+            imageAnalyzer = ImageAnalysis.Builder().build().apply {
                 setAnalyzer(Executors.newSingleThreadExecutor(), CornerAnalyzer {
                     val bitmap = viewFinder.bitmap
                     val img = Mat()
@@ -110,7 +114,7 @@ class CameraXFragment : Fragment() {
                     bitmap?.recycle()
                     // Do image analysis here if you need bitmap
                 })
-            } */
+            }
             // Select back camera
             val cameraSelector =
                 CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
@@ -123,12 +127,12 @@ class CameraXFragment : Fragment() {
                 camera = cameraProvider.bindToLifecycle(
                     this,
                     cameraSelector,
-                   // imageAnalyzer,
+                  //  imageAnalyzer,
                     preview,
                     imageCapture
                 )
 
-                preview?.setSurfaceProvider(viewFinder.getSurfaceProvider())
+                preview?.setSurfaceProvider(viewFinder.surfaceProvider)
             } catch (exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
             }
@@ -243,7 +247,7 @@ class CameraXFragment : Fragment() {
                     "Permissions not granted by the user.",
                     Toast.LENGTH_SHORT
                 ).show()
-//                finish()
+              //  finish()
             }
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -259,7 +263,7 @@ class CameraXFragment : Fragment() {
 
     companion object {
         val TAG = "CameraXFragment"
-        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
+        private const val FILENAME_FORMAT = "dd-MM-yyyy-mm-ss-SSS" // "yyyy-MM-dd-HH-mm-ss-SSS"
         internal const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
         var isOffline = false // prevent app crash when goes offline
