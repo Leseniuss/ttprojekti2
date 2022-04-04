@@ -51,6 +51,8 @@ class CameraXFragment : Fragment() {
         safeContext = context
     }
 
+    // commit change
+
     private fun getStatusBarHeight(): Int {
         val resourceId =
             safeContext.resources.getIdentifier("status_bar_height", "dimen", "android")
