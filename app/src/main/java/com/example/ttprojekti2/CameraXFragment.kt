@@ -33,13 +33,15 @@ import java.util.concurrent.Executors
 // import android.content.ContentResolver
 
 typealias CornersListener = () -> Unit
+typealias LumaListener = (luma: Double) -> Unit
 
 class CameraXFragment : Fragment() {
 
-    private var preview: Preview? = null
+   // private var preview: Preview? = null
     private var imageCapture: ImageCapture? = null
-    private var imageAnalyzer: ImageAnalysis? = null
-    private var camera: Camera? = null
+   // private var imageAnalyzer: ImageAnalysis? = null
+   // private var imageAnalyzer2: ImageAnalysis? = null
+   // private var camera: Camera? = null
 
     private lateinit var safeContext: Context
 
@@ -86,6 +88,8 @@ class CameraXFragment : Fragment() {
             )
         }
 
+
+
         // Setup the listener for take photo button
         image_capture_button.setOnClickListener { takePhoto() }
 
@@ -96,14 +100,14 @@ class CameraXFragment : Fragment() {
     }
 
     private fun startCamera() {
-        OpenCVLoader.initDebug()
+      /* // OpenCVLoader.initDebug()
         val cameraProviderFuture = ProcessCameraProvider.getInstance(safeContext)
 
         cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-            // Preview
+
             preview = Preview.Builder().build()
 
             imageCapture = ImageCapture.Builder().build()
@@ -114,6 +118,8 @@ class CameraXFragment : Fragment() {
                     val img = Mat()
                     Utils.bitmapToMat(bitmap, img)
                     bitmap?.recycle()
+
+                   // val corner = processPicture(img)
                     // Do image analysis here if you need bitmap
                 })
             }
@@ -129,7 +135,7 @@ class CameraXFragment : Fragment() {
                 camera = cameraProvider.bindToLifecycle(
                     this,
                     cameraSelector,
-                  //  imageAnalyzer,
+                   // imageAnalyzer,
                     preview,
                     imageCapture
                 )
@@ -139,9 +145,74 @@ class CameraXFragment : Fragment() {
                 Log.e(TAG, "Use case binding failed", exc)
             }
 
+        }, ContextCompat.getMainExecutor(safeContext)) */
+
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(safeContext)
+
+        cameraProviderFuture.addListener({
+            // Used to bind the lifecycle of cameras to the lifecycle owner
+            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+
+            // Preview
+            val preview = Preview.Builder()
+                .build()
+                .also {
+                    it.setSurfaceProvider(viewFinder.surfaceProvider)
+                }
+
+            imageCapture = ImageCapture.Builder()
+                .build()
+
+            val imageAnalyzer = ImageAnalysis.Builder()
+                .build()
+                .also {
+                    it.setAnalyzer(cameraExecutor, LuminosityAnalyzer { luma ->
+                        Log.d(TAG, "Average luminosity: $luma")
+                        val lumatag = luma
+                        if (lumatag < 100) { takePhoto() }
+                    })
+                }/*.also {
+                    it.setAnalyzer(cameraExecutor,LuminosityAnalyzer { luma ->
+                        Log.d("PERKELE","Average luminosity: $luma")
+
+                    })
+                } */
+
+
+
+            val imageAnalyzer2 = ImageAnalysis.Builder()
+                .build()
+                .also {
+                    it.setAnalyzer(cameraExecutor, LuminosityAnalyzer { luma ->
+                        Log.d("Perkele", "Average luminosity: $luma")
+                        //  val lumaperkele = luma
+                    })
+                }
+
+
+
+            // Select back camera as a default
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            try {
+                // Unbind use cases before rebinding
+                cameraProvider.unbindAll()
+
+                // Bind use cases to camera
+                cameraProvider.bindToLifecycle(
+                    this, cameraSelector, preview, imageCapture, imageAnalyzer //, imageAnalyzer2
+                )
+
+            } catch (exc: Exception) {
+                Log.e(TAG, "Use case binding failed", exc)
+            }
+
         }, ContextCompat.getMainExecutor(safeContext))
 
+
     }
+
+
 
     private fun takePhoto() {
       /*  // Get a stable reference of the modifiable image capture use case
